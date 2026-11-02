@@ -50,7 +50,7 @@ The banner fills the width of `.thankyou-container`. In the design it is 1211 ×
 
 ### Reference CSS (from the prototype)
 
-Adapt this to the site's SCSS conventions. Values are final unless they're listed under [Open questions](#open-questions).
+Adapt this to the site's SCSS conventions.
 
 ```scss
 .thankyou-confirmation {
@@ -122,8 +122,6 @@ Adapt this to the site's SCSS conventions. Values are final unless they're liste
   }
 }
 ```
-
-The font stacks above name SF Pro, as in the design. Change them to the site's own font variables if the team decides not to use SF Pro (see [Open questions](#open-questions)).
 
 ## Motion: line reveal on arrival
 
@@ -203,9 +201,3 @@ The button follows the site's existing `.dismiss-btn` pattern, the one on the up
 - [ ] The dismiss button can be reached with Tab, shows the focus outline, and works with Enter and Space. Screen readers announce it as "Dismiss". After dismissing, focus moves to "What's new".
 - [ ] The banner headline is the page's only `<h1>`.
 - [ ] The header **Download** button and the rest of the page are unchanged.
-
-## Open questions
-
-1. **Dark theme.** The design is light only. The site has a dark theme, so we need either dark values for the background, field, text and link, or a decision that the banner stays light in both themes. Designer to decide.
-2. **Font.** The design uses SF Pro. The site doesn't load SF Pro, so on Windows the headline falls back to the site's display font. Keep the fallback, or switch the stacks to the site's font variables?
-3. **Experiment setup.** Issue #3000 frames this as an experiment. If it should run behind a flag or A/B test against the current bar, which mechanism should it use?
