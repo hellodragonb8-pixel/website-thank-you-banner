@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Thanks for downloading Visual Studio Code</title>
+<style>
+  :root {
+    --bg: #ffffff;
+    --text: #1e1e1e;
+    --muted: #555b63;
+    --link: #0b5cad;
+    --blue: #3b79d8;
+    --blue-hover: #2f69c2;
+    --card: #fafafa;
+    --card-border: #ececec;
+    /* VS Code site (light theme) values for icon buttons */
+    --icon-button-hover-background: rgba(0, 0, 0, .06);
+    --focus-border: #005a9e;
+    --font: "Segoe UI Variable Text", "Segoe UI", -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+    --font-display: "Segoe UI Variable Display", "Segoe UI", -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font);
+    font-size: 16px;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+  a { color: var(--link); }
+  .container { max-width: 1140px; margin: 0 auto; padding: 0 24px; }
+  .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
+
+  /* ---------- Header ---------- */
+  header.site { background: #fff; }
+  header.site .container { display: flex; align-items: center; gap: 28px; height: 76px; }
+  .brand { display: flex; align-items: center; gap: 12px; color: var(--text); text-decoration: none; font-family: var(--font-display); font-weight: 600; font-size: 22px; }
+  .brand svg { width: 34px; height: 34px; }
+  nav.primary { display: flex; gap: 22px; }
+  nav.primary a { color: var(--text); text-decoration: none; font-size: 16px; font-weight: 500; }
+  nav.primary a:hover { color: #000; text-decoration: underline; text-underline-offset: 4px; }
+  .header-right { margin-left: auto; display: flex; align-items: center; gap: 28px; }
+  .icon-btn { background: none; border: 0; color: #333; cursor: pointer; padding: 6px; display: grid; place-items: center; }
+  .icon-btn:hover { color: #000; }
+  .dl-btn {
+    display: inline-flex; align-items: stretch; height: 44px;
+    background: var(--blue); color: #fff; text-decoration: none;
+    border-radius: 6px; font-size: 16px; font-weight: 600;
+    transition: background .25s;
+  }
+  .dl-btn:hover { background: var(--blue-hover); color: #fff; }
+  .dl-main { display: flex; align-items: center; justify-content: center; gap: 12px; padding: 0 18px 0 22px; min-width: 238px; white-space: nowrap; }
+  .dl-caret { display: flex; align-items: center; padding: 0 16px 0 10px; }
+
+  /* ---------- Dismiss button (VS Code site pattern, with the codicon close icon) ---------- */
+  .dismiss-btn {
+    appearance: none; flex: 0 0 auto; display: flex; align-items: center; justify-content: center;
+    width: 32px; height: 32px; padding: 0; border: 0; border-radius: 4px;
+    background: transparent; color: inherit; cursor: pointer;
+  }
+  .dismiss-btn:hover { background: var(--icon-button-hover-background); }
+  .dismiss-btn:focus-visible { outline: 2px solid var(--focus-border); outline-offset: 2px; }
+  .dismiss-btn svg { width: 16px; height: 16px; }
+
+  /* Announcement bar */
+  .announce { background: #f3f7fc; border-bottom: 1px solid #e3e8ef; }
+  .announce .container { display: flex; align-items: center; justify-content: space-between; gap: 16px; height: 44px; }
+  .announce a { font-size: 16px; text-underline-offset: 3px; }
+
+  /* ---------- Main ---------- */
+  main { padding: 0 6vw 120px; }
+
+  /* ---------- Thank-you banner ----------
+     1211 × 225 at a 1392px window, 24px corners. A #E2EFFF field, blurred and extending past the box,
+     over white, so the edges fade lighter; faint neutral grain on top. */
+  .thanks {
+    position: relative; isolation: isolate; overflow: hidden;
+    min-height: 225px; margin-top: 56px; padding: 38px 56px 21px; border-radius: 24px;
+    background: #fff; color: #000; text-align: center;
+  }
+  .thanks[hidden] { display: none; }
+  .thanks::before { content: ""; position: absolute; inset: -28px; z-index: -2; background: #e2efff; filter: blur(36px); }
+  .thanks::after {
+    content: ""; position: absolute; inset: 0; z-index: -1; pointer-events: none;
+    opacity: .14; mix-blend-mode: overlay;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 1 0  0 0 0 1 0  0 0 0 1 0  0 0 0 0 1'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+  }
+  .thanks h1 {
+    font-family: "SF Pro Display", -apple-system, BlinkMacSystemFont, var(--font-display);
+    font-size: 52px; line-height: 60px; font-weight: 600; letter-spacing: 0; margin: 0; color: #000;
+  }
+  .thanks p {
+    font-family: "SF Pro Text", "SF Pro", -apple-system, BlinkMacSystemFont, var(--font);
+    font-size: 14px; line-height: 20px; font-weight: 400; margin: 26px 0 0; color: #000;
+  }
+  .thanks p a { color: #0b77ff; text-decoration: underline; text-underline-offset: 2px; text-decoration-thickness: 1px; }
+  .thanks .dismiss-btn { position: absolute; top: 16px; right: 16px; color: #424242; }
+
+  /* Line reveal: each headline line rises from behind its own mask, 120ms apart; the link fades up
+     as the second line lands. The mask has room at the bottom for descenders. */
+  .thanks h1 .ln { display: block; overflow: hidden; padding-bottom: 12px; margin-bottom: -12px; }
+  .thanks h1 .li { display: inline-block; vertical-align: top; animation: rise 1.1s cubic-bezier(.19,1,.22,1) both; animation-delay: calc(150ms + var(--l) * 120ms); }
+  @keyframes rise { from { transform: translateY(110%); } }
+  .thanks p { animation: fade-up .8s cubic-bezier(.2,.7,.1,1) .77s both; }
+  @keyframes fade-up { from { opacity: 0; transform: translateY(8px); } }
+  @media (prefers-reduced-motion: reduce) {
+    .thanks h1 .li, .thanks p { animation: none; }
+  }
+
+  /* ---------- What's new ---------- */
+  .whats-new { margin-top: 64px; }
+  .whats-new h2 { font-family: var(--font-display); font-size: 30px; font-weight: 600; margin: 0 0 18px; letter-spacing: -.01em; color: #111; }
+  .wn-card {
+    display: grid; grid-template-columns: 0.9fr 1.1fr; gap: 0;
+    background: var(--card); border: 1px solid var(--card-border); border-radius: 16px;
+    overflow: hidden; min-height: 500px;
+  }
+  .wn-text { padding: 56px 40px 48px 36px; display: flex; flex-direction: column; justify-content: center; }
+  .chip { display: block; background: #dde6f3; color: #2b5797; font-size: 13px; font-weight: 600; letter-spacing: .06em; padding: 5px 8px; border-radius: 4px; margin-bottom: 18px; }
+  .wn-text h3 { font-family: var(--font-display); font-size: 38px; line-height: 1.2; font-weight: 600; margin: 0 0 18px; letter-spacing: -.01em; color: #222; }
+  .wn-text p { color: var(--muted); font-size: 18px; line-height: 1.6; margin: 0 0 18px; }
+  .wn-text .more { font-size: 18px; font-weight: 600; text-decoration: none; }
+  .wn-media { padding: 12px; }
+  .wn-media .frame {
+    height: 100%; border-radius: 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px;
+    background:
+      repeating-linear-gradient(0deg, rgba(255,255,255,.018) 0 1px, transparent 1px 22px),
+      repeating-linear-gradient(90deg, rgba(255,255,255,.012) 0 3px, transparent 3px 9px),
+      radial-gradient(ellipse at center, #1c1c1c 0%, #0f0f10 75%);
+  }
+  .wn-media svg { width: 150px; height: 150px; }
+  .wn-media .ver { font-family: var(--font-display); font-weight: 600; font-size: 54px; color: #c9c9c9; letter-spacing: .01em; margin-top: 8px; }
+  .wn-media .rel { font-size: 24px; color: #bdbdbd; }
+
+  footer.legal {
+    position: fixed; left: 0; right: 0; bottom: 0; z-index: 20;
+    background: linear-gradient(to bottom, rgba(255,255,255,0), rgba(255,255,255,.96) 45%);
+    padding: 34px 0 10px; font-size: 13px; color: #5f6670;
+  }
+  footer.legal a { color: #111; font-weight: 600; text-decoration: none; }
+
+  @media (max-width: 1000px) {
+    nav.primary { display: none; }
+    .wn-card { grid-template-columns: 1fr; }
+    .wn-media { min-height: 360px; }
+  }
+  @media (max-width: 640px) {
+    .thanks { padding: 48px 24px 28px; }
+    .thanks h1 { font-size: 34px; line-height: 40px; }
+    .dl-main { min-width: 0; }
+  }
+</style>
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="vsc-logo" viewBox="6 6 84 84">
+    <path fill="#0065A9" d="M87.0275 15.0688L69.7198 6.73546C67.7164 5.77087 65.3223 6.17776 63.75 7.75L7.09081 59.4099C5.56682 60.7994 5.56857 63.1987 7.09459 64.586L11.7227 68.7934C12.9703 69.9275 14.8491 70.011 16.1924 68.992L84.4232 17.2307C86.7122 15.4942 90 17.1268 90 20V19.7991C90 17.7823 88.8447 15.9437 87.0275 15.0688Z"/>
+    <path fill="#007ACC" d="M87.0275 80.9312L69.7198 89.2646C67.7164 90.2292 65.3223 89.8223 63.75 88.25L7.09081 36.5902C5.56682 35.2007 5.56857 32.8013 7.09459 31.414L11.7227 27.2067C12.9703 26.0725 14.8491 25.989 16.1924 27.008L84.4232 78.7693C86.7122 80.5058 90 78.8732 90 76V76.201C90 78.2178 88.8447 80.0563 87.0275 80.9312Z"/>
+    <path fill="#1F9CF0" d="M69.7206 89.2661C67.7166 90.2298 65.3224 89.8223 63.75 88.25C65.6874 90.1873 69 88.8152 69 86.0753V9.92459C69 7.18472 65.6874 5.81259 63.75 7.74996C65.3224 6.17757 67.7166 5.77012 69.7206 6.73385L87.0253 15.0558C88.8437 15.9302 90 17.7694 90 19.7871V76.2131C90 78.2309 88.8436 80.07 87.0253 80.9445L69.7206 89.2661Z"/>
+  </symbol>
+  <symbol id="i-win" viewBox="0 0 16 16"><path fill="currentColor" d="M0 0h7.5v7.5H0zM8.5 0H16v7.5H8.5zM0 8.5h7.5V16H0zM8.5 8.5H16V16H8.5z"/></symbol>
+  <symbol id="i-chev" viewBox="0 0 16 16"><path fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" d="M3.5 6l4.5 4.5L12.5 6"/></symbol>
+  <symbol id="i-search" viewBox="0 0 24 24"><circle cx="13.5" cy="10.5" r="6.5" fill="none" stroke="currentColor" stroke-width="1.6"/><path stroke="currentColor" stroke-width="1.6" stroke-linecap="round" d="M8.8 15.2L3.5 20.5"/></symbol>
+  <!-- codicon "close" (microsoft/vscode-codicons, src/icons/close.svg) -->
+  <symbol id="codicon-close" viewBox="0 0 16 16"><path fill="currentColor" d="M13.85 13.1502C14.05 13.3502 14.05 13.6602 13.85 13.8602C13.75 13.9602 13.62 14.0102 13.5 14.0102C13.38 14.0102 13.24 13.9602 13.15 13.8602L8 8.71023L2.85 13.8602C2.75 13.9602 2.62 14.0102 2.5 14.0102C2.38 14.0102 2.24 13.9602 2.15 13.8602C1.95 13.6602 1.95 13.3502 2.15 13.1502L7.3 8.00023L2.15 2.85023C1.95 2.65023 1.95 2.34023 2.15 2.14023C2.35 1.94023 2.66 1.94023 2.86 2.14023L8.01 7.29023L13.16 2.14023C13.36 1.94023 13.67 1.94023 13.87 2.14023C14.07 2.34023 14.07 2.65023 13.87 2.85023L8.72 8.00023L13.87 13.1502H13.85Z"/></symbol>
+</svg>
+
+<header class="site">
+  <div class="container">
+    <a class="brand" href="#"><svg><use href="#vsc-logo"/></svg>VS Code</a>
+    <nav class="primary">
+      <a href="#">Features</a><a href="#">Release notes</a><a href="#">Blog</a><a href="#">Resources</a>
+    </nav>
+    <div class="header-right">
+      <button class="icon-btn" aria-label="Search"><svg width="26" height="26"><use href="#i-search"/></svg></button>
+      <a class="dl-btn" href="#">
+        <span class="dl-main"><svg width="17" height="17"><use href="#i-win"/></svg>Download for Windows</span>
+        <span class="dl-caret"><svg width="18" height="18"><use href="#i-chev"/></svg></span>
+      </a>
+    </div>
+  </div>
+</header>
+<div class="announce" id="announce">
+  <div class="container">
+    <a href="#">Join VS Code at GitHub Universe!</a>
+    <button type="button" class="dismiss-btn" title="Dismiss this update" data-dismiss="announce">
+      <span class="sr-only">Dismiss this update</span><svg aria-hidden="true"><use href="#codicon-close"/></svg>
+    </button>
+  </div>
+</div>
+
+<main>
+  <section class="thanks" id="thanks" aria-labelledby="thanks-title">
+    <h1 id="thanks-title"><span class="ln"><span class="li" style="--l:0">Thanks for downloading</span></span><span class="ln"><span class="li" style="--l:1">Visual Studio Code!</span></span></h1>
+    <p>Click <a href="#">here</a> if your download hasn’t started.</p>
+    <button type="button" class="dismiss-btn" title="Dismiss" data-dismiss="thanks">
+      <span class="sr-only">Dismiss</span><svg aria-hidden="true"><use href="#codicon-close"/></svg>
+    </button>
+  </section>
+
+  <section class="whats-new">
+    <h2>What's new</h2>
+    <div class="wn-card">
+      <div class="wn-text">
+        <span class="chip">LATEST</span>
+        <h3>Session continuity across environments</h3>
+        <p>Keep agent work moving across local, remote, and cloud environments. Explore Copilot Fusion, image generation in chat (Preview), and assisted permissions for fewer approval prompts.</p>
+        <a class="more" href="#">Learn more →</a>
+      </div>
+      <div class="wn-media">
+        <div class="frame">
+          <svg><use href="#vsc-logo"/></svg>
+          <div class="ver">VS Code v1.144</div>
+          <div class="rel">New release</div>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="legal">
+  <div class="container">By using VS Code, you agree to its <a href="#">license</a> and <a href="#">privacy statement</a>.</div>
+</footer>
+
+<script>
+  // Dismiss buttons hide their region right away, as on code.visualstudio.com
+  document.addEventListener('click', e => {
+    const btn = e.target.closest('[data-dismiss]');
+    if (btn) document.getElementById(btn.dataset.dismiss).hidden = true;
+  });
+</script>
+</body>
+</html>
