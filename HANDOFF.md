@@ -48,6 +48,23 @@ The banner fills the width of `.thankyou-container`. In the design it is 1211 ×
 
 **Edges:** keep the edges as designed. The light fade at the border comes from blurring the #E2EFFF field, not from a border or a gradient. In the reference render, the edge is about #E8F2FE and reaches flat #E2EFFF about 60px in.
 
+### Dark theme
+
+Layout, type and motion are the same as in the light theme. Only the colors change, along with how far the blurred field extends past the banner.
+
+| Property | Light | Dark |
+|---|---|---|
+| Base under the field | #FFFFFF | #0D1014 (the page background) |
+| Field | #E2EFFF, extends 28px past each edge | #081626, extends 6px past each edge |
+| Grain | 14% opacity, overlay blend | Same |
+| Headline and body | #000000 | #ECF4FE |
+| Link | #0B77FF | #4DAAFC |
+| Dismiss icon | #424242 | #C5C5C5 |
+| Dismiss hover | rgba(0, 0, 0, .06) | rgba(255, 255, 255, .1) |
+| Dismiss focus outline | #005A9E | #007ACC |
+
+The dark field is #081626 because the grain lifts it a little. The rendered interior is about #091729, which matches the design. The smaller extension makes the edge fade into the page: it renders at about #0A1522 and reaches the flat interior about 40px in. The hover and focus values are the site's `--icon-button-hover-background` and `--focus-border` in each theme.
+
 ### Reference CSS (from the prototype)
 
 Adapt this to the site's SCSS conventions.
@@ -121,6 +138,29 @@ Adapt this to the site's SCSS conventions.
     }
   }
 }
+
+// Dark theme overrides
+.thankyou-confirmation {
+  background: #0d1014;
+
+  &::before {
+    inset: -6px;
+    background: #081626;
+  }
+
+  h1,
+  p {
+    color: #ecf4fe;
+  }
+
+  p a {
+    color: #4daafc;
+  }
+
+  .dismiss-btn {
+    color: #c5c5c5;
+  }
+}
 ```
 
 ## Motion: line reveal on arrival
@@ -173,7 +213,7 @@ The button follows the site's existing `.dismiss-btn` pattern, the one on the up
 |---|---|
 | Position | Absolute, 16px from the top and 16px from the right of the banner |
 | Size | 32 × 32px, 4px corner radius |
-| Icon | `codicon codicon-close`, 16px, color #424242 |
+| Icon | `codicon codicon-close`, 16px, color #424242 (dark: #C5C5C5) |
 | Background | Transparent; on hover `var(--icon-button-hover-background)`, which is rgba(0, 0, 0, .06) in the light theme |
 | Keyboard focus | `outline: 2px solid var(--focus-border); outline-offset: 2px` on `:focus-visible` |
 | Label | `title="Dismiss"`, plus visually hidden text "Dismiss" (`.sr-only`) |
@@ -196,6 +236,7 @@ The button follows the site's existing `.dismiss-btn` pattern, the one on the up
 - [ ] After a download redirect, the banner appears where the old confirmation bar was, and the headline plays the line reveal once.
 - [ ] "here" links to the same direct-download URL that `#direct-link` gets today, for every OS and build.
 - [ ] At a 1392px window, the banner matches the reference: 225px tall, 24px corners, centered type at the sizes above, and the soft lighter edge.
+- [ ] In the dark theme, the banner uses the dark colors above, and its edge fades into the page background.
 - [ ] At 640px wide or less, the headline is 34/40 and nothing is clipped or overlapping.
 - [ ] With reduced motion turned on, the banner appears in its final state without animation.
 - [ ] The dismiss button can be reached with Tab, shows the focus outline, and works with Enter and Space. Screen readers announce it as "Dismiss". After dismissing, focus moves to "What's new".
