@@ -186,23 +186,21 @@
     .thanks h1, .thanks p { animation: none; }
   }
 
-  /* ---------- Variation switcher (prototype only; H hides it) ---------- */
+  /* ---------- Theme toggle (prototype only; H hides it) ---------- */
   .opts {
-    position: fixed; left: 50%; bottom: 52px; z-index: 30; transform: translateX(-50%);
+    position: fixed; right: 24px; bottom: 52px; z-index: 30;
     display: flex; gap: 4px; padding: 4px; border-radius: 10px;
     background: rgba(30, 33, 38, .92); box-shadow: 0 6px 24px rgba(0, 0, 0, .25);
     font: 500 13px/1 var(--font);
   }
   .opts[hidden] { display: none; }
   .opts button {
-    padding: 8px 14px; border: 0; border-radius: 7px; background: transparent; color: #c9d1d9;
-    font: inherit; cursor: pointer;
+    display: grid; place-items: center; padding: 8px 10px; border: 0; border-radius: 7px;
+    background: transparent; color: #c9d1d9; font: inherit; cursor: pointer;
   }
   .opts button:hover { background: rgba(255, 255, 255, .08); color: #fff; }
   .opts button[aria-pressed="true"] { background: #0078d4; color: #fff; }
   .opts button:focus-visible { outline: 2px solid #4daafc; outline-offset: 2px; }
-  .opts.theme-toggle { left: auto; right: 24px; transform: none; }
-  .theme-toggle button { display: grid; place-items: center; padding: 8px 10px; }
   .theme-toggle svg { width: 16px; height: 16px; }
 
   /* ---------- What's new ---------- */
@@ -246,6 +244,10 @@
     .thanks { padding: 48px 24px 28px; }
     .thanks h1 { font-size: 34px; line-height: 40px; }
     .dl-main { min-width: 0; }
+    /* The header doesn't fit a phone: keep the name on one line and drop the download button, which this page's
+       visitors have already used */
+    .brand { white-space: nowrap; }
+    .dl-btn { display: none; }
   }
 </style>
 </head>
@@ -294,7 +296,7 @@
       <span class="ln">Thanks for downloading</span>
       <span class="ln">Visual Studio Code!</span>
     </h1>
-    <p>Click <a href="#">here</a> if your download hasn’t started.</p>
+    <p>Click <a href="#">here</a> if it doesn’t start soon.</p>
     <button type="button" class="dismiss-btn" title="Dismiss" data-dismiss="thanks">
       <span class="sr-only">Dismiss</span><svg aria-hidden="true"><use href="#codicon-close"/></svg>
     </button>
@@ -324,15 +326,6 @@
   <div class="container">By using VS Code, you agree to its <a href="#">license</a> and <a href="#">privacy statement</a>.</div>
 </footer>
 
-<nav class="opts" id="opts" aria-label="Variations">
-  <button type="button" data-variant="A" title="Option 4 as it was: diagonal from the top left, 5.5s across">A Original</button>
-  <button type="button" data-variant="B" title="Diagonal from the top left, 3.5s across">B Faster</button>
-  <button type="button" data-variant="C" title="Diagonal from the top left, 3.5s across, with the first option 4's bigger cells">C Faster, bigger</button>
-  <button type="button" data-variant="D" title="From the center, spreading out as a diamond with 45° edges">D Center, diamond</button>
-  <button type="button" data-variant="E" title="From the center, spreading out as a circle">E Center, circle</button>
-  <button type="button" data-variant="F" title="Out from the edges of the headline; the grid behind the text stays at rest">F From headline</button>
-</nav>
-
 <!-- Codicons has no sun or moon, so these are drawn to match: 16px grid, 1px strokes -->
 <nav class="opts theme-toggle" id="themeToggle" aria-label="Theme">
   <button type="button" data-theme="light" title="Light theme" aria-label="Light theme">
@@ -344,28 +337,9 @@
 </nav>
 
 <script>
-  // Variations on option 4 from the explorations page (confetti.html): a dense light grid of small codicons that a
-  // band of light sweeps across once. The headline stays put and the banner animates out when dismissed. Each
-  // variation changes only what its name says; everything else is option 4's tuning (LIGHT_GRID below).
-  //   A Original: diagonal from the top left to the bottom right, 5.5s across, as in confetti.html.
-  //   B Faster: the same diagonal, 3.5s across.
-  //   C Faster, bigger: B with the first option 4's bigger cells (14px icons, 10px gaps).
-  //   D Center, diamond: from the center outward, with 45° edges like the diagonal. The light moves as fast as in
-  //     A, but only has half as far to go.
-  //   E Center, circle: from the center outward as a circle, as fast as A.
-  //   F From headline: out from the edges of the headline and link, as fast as A; the grid behind the text stays
-  //     at rest, so the light never crosses the words.
-  // Pick with ?v=A to F (the switcher at the bottom does this); without one, A plays.
-  const VARIANTS = {
-    A: {},
-    B: { sweepDur: 3.5, stay: 1.7 },
-    C: { sweepDur: 3.5, stay: 1.7, cell: 14, gap: 10 },
-    D: { origin: 'center-diamond' },
-    E: { origin: 'center-circle' },
-    F: { origin: 'headline' },
-  };
-  const param = (new URLSearchParams(location.search).get('v') || '').toUpperCase();
-  const VARIANT_ID = param in VARIANTS ? param : 'A';
+  // Option 4: a dense light grid of small codicons. A band of light starts at the center of the banner and spreads
+  // out once as a diamond, with 45° edges, then the grid rests. The headline stays put and the banner animates out
+  // when dismissed. With reduced motion there's no grid at all.
   const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
 
   // Dismiss buttons hide their region right away, as on code.visualstudio.com.
@@ -394,13 +368,11 @@
   // cells show icons with more ink, and icons scramble right at the leading edge, then settle. It plays once, then
   // the resting dots fade down. Lights are drawn as the light color at partial opacity, so they sit on the banner's
   // own background (in light mode, the original soft blue field).
-  // Option 4's tuning, from the light grid prototype's banner preview. Distances (fadeSoft, lightEdge) are shares
-  // of the banner's diagonal (width + height), whichever way the light travels, so every origin moves at the same
-  // speed and draws the same band unless a variation changes sweepDur or stay.
+  // Tuned in the light grid prototype's banner preview, for a diagonal sweep from the top left corner. Distances
+  // (fadeSoft, lightEdge) are shares of the banner's diagonal (width + height); spreading from the center keeps the
+  // same speed and band, so the light only has half as far to go.
   const LIGHT_GRID = {
-    origin: 'corner',        // where the light starts: corner (top left, diagonally), center-diamond, center-circle
-                             // or headline
-    sweepDur: 5.5,           // seconds for the light front to cross the banner's diagonal
+    sweepDur: 5.5,           // seconds the light front would take to cross the banner's diagonal
     stay: 2.7,               // seconds before the fade-out front follows it
     fadeSoft: .23,           // width of the fade-out edge
     crest: 1,                // extra brightness right at the leading edge
@@ -435,29 +407,7 @@
     "circle-filled": [16, [["M8 4C8.36719 4 8.72135 4.04818 9.0625 4.14453C9.40365 4.23828 9.72135 4.3724 10.0156 4.54688C10.3125 4.72135 10.582 4.93099 10.8242 5.17578C11.069 5.41797 11.2786 5.6875 11.4531 5.98438C11.6276 6.27865 11.7617 6.59635 11.8555 6.9375C11.9518 7.27865 12 7.63281 12 8C12 8.36719 11.9518 8.72135 11.8555 9.0625C11.7617 9.40365 11.6276 9.72266 11.4531 10.0195C11.2786 10.3138 11.069 10.5833 10.8242 10.8281C10.582 11.0703 10.3125 11.2786 10.0156 11.4531C9.72135 11.6276 9.40365 11.763 9.0625 11.8594C8.72135 11.9531 8.36719 12 8 12C7.63281 12 7.27865 11.9531 6.9375 11.8594C6.59635 11.763 6.27734 11.6276 5.98047 11.4531C5.6862 11.2786 5.41667 11.0703 5.17188 10.8281C4.92969 10.5833 4.72135 10.3138 4.54688 10.0195C4.3724 9.72266 4.23698 9.40365 4.14062 9.0625C4.04688 8.72135 4 8.36719 4 8C4 7.63281 4.04688 7.27865 4.14062 6.9375C4.23698 6.59635 4.3724 6.27865 4.54688 5.98438C4.72135 5.6875 4.92969 5.41797 5.17188 5.17578C5.41667 4.93099 5.6862 4.72135 5.98047 4.54688C6.27734 4.3724 6.59635 4.23828 6.9375 4.14453C7.27865 4.04818 7.63281 4 8 4Z"]]],
   };
 
-  // The headline and link's text, as a box in the canvas's coordinates, padded a little. The text measures where it
-  // is drawn right now, mid fade-up, so the box reaches 8px lower than where it settles.
-  function textBox(canvas, pad = 10) {
-    const origin = canvas.getBoundingClientRect();
-    const box = { left: Infinity, top: Infinity, right: -Infinity, bottom: -Infinity };
-    const range = document.createRange();
-    for (const el of canvas.parentElement.querySelectorAll('h1, p')) {
-      const walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT);
-      while (walker.nextNode()) {
-        if (!walker.currentNode.textContent.trim()) continue;
-        range.selectNodeContents(walker.currentNode);
-        for (const r of range.getClientRects()) {
-          box.left = Math.min(box.left, r.left - origin.left - pad);
-          box.top = Math.min(box.top, r.top - origin.top - pad);
-          box.right = Math.max(box.right, r.right - origin.left + pad);
-          box.bottom = Math.max(box.bottom, r.bottom - origin.top + pad);
-        }
-      }
-    }
-    return box;
-  }
-
-  // Any LIGHT_GRID setting can be overridden per variation, e.g. { sweepDur: 3.5, cell: 14 }
+  // Any LIGHT_GRID setting can be overridden, e.g. { sweepDur: 3.5, cell: 14 }
   function launchLightGrid(canvas, icons, tuning = {}) {
     const g = { ...LIGHT_GRID, ...tuning };
     const { cell, gap, lightEdge, restFadeTo } = g;
@@ -502,23 +452,12 @@
     const cols = Math.floor(W / pitch), rows = Math.floor(H / pitch);
     const ox = (W - cols * pitch) / 2, oy = (H - rows * pitch) / 2;
     const sparkle = Float32Array.from({ length: cols * rows }, () => Math.random());
-    // Each cell's distance from where the light starts, as a share of the banner's diagonal (width + height), with a
-    // little jitter so the edge looks like individual lights switching. From the corner it runs 0 to 1, a true 45°
-    // line; from the center or the headline it only gets about halfway. Cells inside the headline's box never light.
-    const text = g.origin === 'headline' ? textBox(canvas) : null;
-    const distance = (x, y) => {
-      if (g.origin === 'corner') return x + y;
-      if (g.origin === 'center-diamond') return Math.abs(x - W / 2) + Math.abs(y - H / 2);
-      if (g.origin === 'center-circle') return Math.hypot(x - W / 2, y - H / 2);
-      // headline: diagonal distance from the box, so the corners spread at 45° too
-      return Math.max(0, text.left - x, x - text.right) + Math.max(0, text.top - y, y - text.bottom);
-    };
-    const dark = new Uint8Array(cols * rows);
+    // Each cell's distance from the center, measured across plus down so the light spreads as a diamond with true 45°
+    // edges, as a share of the banner's diagonal (width + height): 0 at the center, about .5 at the corners. A
+    // little jitter makes the edge look like individual lights switching.
     const along = Float32Array.from({ length: cols * rows }, (_, k) => {
       const x = ox + (k % cols + .5) * pitch, y = oy + (Math.floor(k / cols) + .5) * pitch;
-      const d = distance(x, y);
-      if (text && d === 0) dark[k] = 1;
-      return d / (W + H) + (sparkle[k] - .5) * .03;
+      return (Math.abs(x - W / 2) + Math.abs(y - H / 2)) / (W + H) + (sparkle[k] - .5) * .03;
     });
     const reach = Math.max(...along);
 
@@ -606,7 +545,7 @@
           const k = j * cols + i;
           let lvl = 0, edge = 0;
           const sp = sparkle[k];
-          if (sweeping && !dark[k]) {
+          if (sweeping) {
             const d = along[k];
             const lit = smooth((L - d) / lightEdge) * (1 - smooth((F - d) / g.fadeSoft + 1));
             if (lit > 0) {
@@ -639,27 +578,19 @@
   const banner = document.getElementById('thanks');
   const wait = ms => new Promise(r => setTimeout(r, ms));
 
-  // With reduced motion there's no grid at all, whichever variation is picked
   function play() {
     if (reducedMotion) return;
     const canvas = document.createElement('canvas');
     canvas.className = 'light-grid';
     canvas.setAttribute('aria-hidden', 'true');
     banner.appendChild(canvas);
-    launchLightGrid(canvas, GRID_CODICONS, VARIANTS[VARIANT_ID]);
+    launchLightGrid(canvas, GRID_CODICONS);
   }
   play();
 
-  // Variation switcher: reloads with the chosen variation so it plays from the start; keys A–F do the same.
-  // H hides the switcher and theme toggle for presenting; they stay hidden on reload until H is pressed again.
-  const opts = document.getElementById('opts');
-  const chooseVariant = n => { location.search = `?v=${n}`; };
-  for (const b of opts.querySelectorAll('button')) {
-    b.setAttribute('aria-pressed', b.dataset.variant === VARIANT_ID);
-    b.addEventListener('click', () => chooseVariant(b.dataset.variant));
-  }
-  // Theme toggle: sets #light or #dark and reloads, so the animation replays in the new theme's colors (each
-  // animation reads its colors when it starts). Switching variations keeps the theme.
+  // Theme toggle: sets #light or #dark and reloads, so the animation replays in the new theme's colors (the
+  // animation reads its colors when it starts). H hides it for presenting; it stays hidden on reload until H is
+  // pressed again.
   const themeToggle = document.getElementById('themeToggle');
   const syncThemeToggle = () => {
     for (const b of themeToggle.querySelectorAll('button')) b.setAttribute('aria-pressed', b.dataset.theme === document.documentElement.dataset.theme);
@@ -675,14 +606,13 @@
   syncThemeToggle();
 
   const hideOpts = on => {
-    opts.hidden = themeToggle.hidden = on;
+    themeToggle.hidden = on;
     sessionStorage.setItem('opts-hidden', on ? '1' : '');
   };
   hideOpts(sessionStorage.getItem('opts-hidden') === '1');
   document.addEventListener('keydown', e => {
     if (e.ctrlKey || e.metaKey || e.altKey || e.target.closest('input, textarea')) return;
-    if (e.key.toUpperCase() in VARIANTS) chooseVariant(e.key.toUpperCase());
-    else if (e.key.toLowerCase() === 'h') hideOpts(!opts.hidden);
+    if (e.key.toLowerCase() === 'h') hideOpts(!themeToggle.hidden);
   });
 </script>
 </body>
