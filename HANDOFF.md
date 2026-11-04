@@ -17,15 +17,15 @@ Reference prototype: [hellodragonb8-pixel/website-thank-you-banner](https://gith
 |---|---|
 | `server/views/thankyou.handlebars` | Replace the inner markup of `#confirmation`. Keep `id="confirmation"`, `role="status"` and `aria-live="polite"`. |
 | `client/styles/includes/_thankyou.scss` | Replace the `.thankyou-confirmation` styles. |
-| `client/scripts/jquery/download.js` | No change expected. It already shows `#confirmation` with `.show()` and sets the `href` of `#direct-link`. Keep those IDs. Add the dismiss handler here or in a small script for the page. |
+| `client/scripts/jquery/download.js` | It already shows `#confirmation` with `.show()` and sets the `href` of `#direct-link`. Keep those IDs. Start the light grid right after `.show()` (see [Motion: light grid](#motion-light-grid)). Add the dismiss handler here or in a small script for the page. |
 
-`download.js` keeps the banner hidden until it calls `.show()`. CSS animations don't run while an element is `display: none`, so the headline animation starts when the banner appears. That's the intended timing.
+`download.js` keeps the banner hidden until it calls `.show()`. CSS animations don't run while an element is `display: none`, so the headline animation starts when the banner appears. That's the intended timing. The light grid is drawn by script, so it has to be started explicitly at the same moment.
 
 ## Content
 
 - **Headline**, always on two lines:
   `Thanks for downloading` / `Visual Studio Code!`
-- **Body:** `Click here if your download hasn’t started.` Only "here" is the link (`#direct-link`). Use a typographic apostrophe in "hasn’t".
+- **Body:** `Click here if it doesn’t start soon.` Only "here" is the link (`#direct-link`). Use a typographic apostrophe in "doesn’t".
 - **Dismiss button** in the top-right corner (see [Dismiss button](#dismiss-button)).
 
 ## Layout and visuals
@@ -205,6 +205,61 @@ When the user has asked for reduced motion (`prefers-reduced-motion: reduce`), t
 
 The page has no `<h1>` today: its headings start at "What's new" (`<h2>`), and the layout's header, updates banner and footer have none. So the banner headline is the page's `<h1>`.
 
+## Motion: light grid
+
+Behind the text, the banner holds a dense grid of small codicons. When the banner appears, a band of light starts at the center and spreads out to the edges as a diamond with 45° sides. Cells light up as the front passes, stay lit for a moment, then fade back. Afterwards the grid rests as faint dots, and the animation stops. It plays once and doesn't loop. The headline's line reveal plays at the same time, in front of it.
+
+The reference implementation is the script in `index.html`: `LIGHT_GRID` (the tuning), `GRID_CODICONS` (the icons), `launchLightGrid()` and `playLightGrid()`. Port it as it is; the values below describe what it does.
+
+### Timeline (1211 × 225 banner)
+
+| Time | What happens |
+|---|---|
+| 0s | The grid appears as resting dots and fades in over 1s (ease-out) |
+| About 0.7s | The light first shows at the center, behind the headline |
+| About 2.6s | The light front reaches the corners |
+| About 5.6s | The last lit cells have faded back to rest |
+| 6.3–7.8s | The resting dots fade down to 40% of their brightness, then drawing stops |
+
+### Grid and light
+
+| Property | Value |
+|---|---|
+| Layer | A `<canvas>` filling the banner, `aria-hidden="true"`, `pointer-events: none`. It sits above the blurred field and the grain, and below the headline, body and dismiss button. |
+| Grid | 9px icons with 6px gaps (15px pitch), centered in the banner |
+| Resting cells | `circle-small-filled` dots |
+| Lit cells | 15 codicons from microsoft/vscode-codicons: `dash`, `add`, `code`, `json`, `terminal`, `git-branch`, `source-control`, `sparkle`, `search`, `files`, `extensions`, `symbol-event`, `copilot`, `vscode`, `circle-filled`. Brighter cells use icons with more ink. |
+| Brightness | 16 steps, for an LED look. Every lit cell is about equally bright, with a brighter crest at the leading edge. |
+| Leading edge | Icons scramble right at the front, about 18 changes per second, then settle |
+| Light color | #1F7BFF (dark: #0F66F0), drawn at partial opacity so the banner's own background shows through |
+| Shape | Each cell lights when the front passes its distance from the center, measured as the horizontal distance plus the vertical distance. That makes the diamond. |
+| Speed | The front moves about 0.25 × (banner width + height) per second, about 366px/s at 1211 × 225, so wider banners take the same time to fill |
+| Band | Cells stay lit for 2.7s after the front passes, then fade back to rest |
+| Resolution | The canvas uses `devicePixelRatio`, capped at 2 |
+
+### Behavior
+
+- **Start:** call `playLightGrid()` right after `download.js` shows the banner. The grid measures the banner when it starts, so it can't start while the banner is hidden.
+- **Reduced motion:** with `prefers-reduced-motion: reduce`, don't draw the grid at all. The banner shows in its final state, as for the line reveal.
+- **Dismiss:** the grid stops drawing as soon as the banner is hidden, whether by the `hidden` attribute or `display: none` (such as jQuery's `.hide()`).
+- **Cost:** about 1,000 cells per frame for about 8 seconds, from icons drawn ahead of time into an atlas, then nothing.
+
+```scss
+.thankyou-confirmation {
+  .light-grid {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    animation: thankyou-grid-in 1s ease-out both;
+  }
+  h1, p { position: relative; z-index: 1; }
+  .dismiss-btn { z-index: 2; }
+}
+@keyframes thankyou-grid-in { from { opacity: 0; } }
+```
+
 ## Dismiss button
 
 The button follows the site's existing `.dismiss-btn` pattern, the one on the updates banner, but uses the codicon close icon instead of the "×" glyph.
@@ -234,11 +289,13 @@ The button follows the site's existing `.dismiss-btn` pattern, the one on the up
 ## Acceptance criteria
 
 - [ ] After a download redirect, the banner appears where the old confirmation bar was, and the headline plays the line reveal once.
+- [ ] As the banner appears, the light grid spreads once from the center as a diamond, settles to faint dots, and stops drawing after about 8 seconds.
+- [ ] The text, link and dismiss button stay in front of the grid, and the link and button can be clicked while it plays.
 - [ ] "here" links to the same direct-download URL that `#direct-link` gets today, for every OS and build.
 - [ ] At a 1392px window, the banner matches the reference: 225px tall, 24px corners, centered type at the sizes above, and the soft lighter edge.
 - [ ] In the dark theme, the banner uses the dark colors above, and its edge fades into the page background.
 - [ ] At 640px wide or less, the headline is 34/40 and nothing is clipped or overlapping.
-- [ ] With reduced motion turned on, the banner appears in its final state without animation.
+- [ ] With reduced motion turned on, the banner appears in its final state without animation, and without the light grid.
 - [ ] The dismiss button can be reached with Tab, shows the focus outline, and works with Enter and Space. Screen readers announce it as "Dismiss". After dismissing, focus moves to "What's new".
 - [ ] The banner headline is the page's only `<h1>`.
 - [ ] The header **Download** button and the rest of the page are unchanged.
