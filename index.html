@@ -164,15 +164,17 @@
   .thanks p a { color: var(--thanks-link); text-decoration: underline; text-underline-offset: 2px; text-decoration-thickness: 1px; }
   .thanks .dismiss-btn { position: absolute; top: 16px; right: 16px; z-index: 2; color: var(--thanks-dismiss); }
 
-  /* Line reveal: each headline line rises from behind its own mask, 120ms apart; the link fades up
-     as the second line lands. The mask has room at the bottom for descenders. */
-  .thanks h1 .ln { display: block; overflow: hidden; padding-bottom: 12px; margin-bottom: -12px; }
-  .thanks h1 .li { display: inline-block; vertical-align: top; animation: rise 1.1s cubic-bezier(.19,1,.22,1) both; animation-delay: calc(150ms + var(--l) * 120ms); }
-  @keyframes rise { from { transform: translateY(110%); } }
-  .thanks p { animation: fade-up .8s cubic-bezier(.2,.7,.1,1) .77s both; }
+  /* Fade-up: the headline, then the link, fade in while moving up 8px as the banner appears */
+  .thanks h1 .ln { display: block; }
+  .thanks h1, .thanks p { animation: fade-up .7s cubic-bezier(.2,.7,.1,1) both; }
+  .thanks h1 { animation-delay: .1s; }
+  .thanks p { animation-delay: .35s; }
   @keyframes fade-up { from { opacity: 0; transform: translateY(8px); } }
+  /* Dismiss: the text fades up and out, then the banner folds away and the page moves up (see the script) */
+  .thanks.leaving h1, .thanks.leaving p { animation: fade-out .2s ease-in forwards; }
+  @keyframes fade-out { to { opacity: 0; transform: translateY(-8px); } }
   @media (prefers-reduced-motion: reduce) {
-    .thanks h1 .li, .thanks p { animation: none; }
+    .thanks h1, .thanks p { animation: none; }
   }
 
   /* Light grid: a canvas behind the text, clipped to the banner, that fades in as it starts (see the script at the
@@ -270,7 +272,7 @@
 
 <main>
   <section class="thanks" id="thanks" aria-labelledby="thanks-title">
-    <h1 id="thanks-title"><span class="ln"><span class="li" style="--l:0">Thanks for downloading</span></span><span class="ln"><span class="li" style="--l:1">Visual Studio Code!</span></span></h1>
+    <h1 id="thanks-title"><span class="ln">Thanks for downloading</span><span class="ln">Visual Studio Code!</span></h1>
     <p>Click <a href="#">here</a> if it doesn’t start soon.</p>
     <button type="button" class="dismiss-btn" title="Dismiss" data-dismiss="thanks">
       <span class="sr-only">Dismiss</span><svg aria-hidden="true"><use href="#codicon-close"/></svg>
@@ -302,11 +304,30 @@
 </footer>
 
 <script>
-  // Dismiss buttons hide their region right away, as on code.visualstudio.com
+  const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  // Dismiss buttons hide their region right away, as on code.visualstudio.com. The thank-you banner animates out
+  // first, unless reduced motion is on.
   document.addEventListener('click', e => {
     const btn = e.target.closest('[data-dismiss]');
-    if (btn) document.getElementById(btn.dataset.dismiss).hidden = true;
+    if (!btn) return;
+    const region = document.getElementById(btn.dataset.dismiss);
+    if (region.id === 'thanks' && !reducedMotion) dismissAnimated(region);
+    else region.hidden = true;
   });
+
+  // The text fades up and out (.2s, in the CSS), then the banner folds to nothing: height, top margin, padding and
+  // opacity go to 0 over 360ms, so the page below moves up into the space
+  async function dismissAnimated(el) {
+    if (el.classList.contains('leaving')) return;
+    el.classList.add('leaving');
+    await new Promise(r => setTimeout(r, 200));
+    const cs = getComputedStyle(el);
+    const from = { height: `${el.offsetHeight}px`, minHeight: cs.minHeight, marginTop: cs.marginTop, paddingTop: cs.paddingTop, paddingBottom: cs.paddingBottom, opacity: 1 };
+    const to = { height: '0px', minHeight: '0px', marginTop: '0px', paddingTop: '0px', paddingBottom: '0px', opacity: 0 };
+    await el.animate([from, to], { duration: 360, easing: 'cubic-bezier(.4, 0, .2, 1)' }).finished;
+    el.hidden = true;
+  }
 
   // Light grid: a dense grid of small codicons behind the text. A band of light starts at the center of the banner
   // and spreads out once as a diamond, with 45° edges, lighting cells with a brighter leading edge, then fading them
@@ -316,7 +337,6 @@
   // no grid at all.
   // Distances (fadeSoft, lightEdge) are shares of the banner's diagonal (width + height). From the center the light
   // only has half that far to go, so it reaches the corners in about 2.6s.
-  const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
   const LIGHT_GRID = {
     sweepDur: 5.5,           // seconds the light front would take to cross the banner's diagonal
     stay: 2.7,               // seconds before the fade-out front follows it

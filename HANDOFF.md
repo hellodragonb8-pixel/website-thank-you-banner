@@ -163,43 +163,35 @@ Adapt this to the site's SCSS conventions.
 }
 ```
 
-## Motion: line reveal on arrival
+## Motion: text fade-up on arrival
 
-When the banner appears, each headline line slides up from behind its own mask. The body text then fades up as the second line lands. The animation plays once and doesn't loop.
+When the banner appears, the headline fades up into place, then the body text follows. The animation plays once and doesn't loop.
 
 | Element | Animation | Duration | Delay | Easing |
 |---|---|---|---|---|
-| Headline line 1 | Moves up from 110% below into place, clipped to the line | 1.1s | 150ms | `cubic-bezier(.19, 1, .22, 1)` |
-| Headline line 2 | Same as line 1 | 1.1s | 270ms | Same as line 1 |
-| Body text | Fades from 0 to 1 opacity while moving up 8px | 0.8s | 770ms | `cubic-bezier(.2, .7, .1, 1)` |
-
-Each line's mask has 12px of extra room at the bottom (`padding-bottom: 12px; margin-bottom: -12px`), so letters that drop below the line, like "g", aren't cut off.
+| Headline (both lines together) | Fades from 0 to 1 opacity while moving up 8px | 0.7s | 100ms | `cubic-bezier(.2, .7, .1, 1)` |
+| Body text | Same as the headline | 0.7s | 350ms | Same as the headline |
 
 When the user has asked for reduced motion (`prefers-reduced-motion: reduce`), turn all of these animations off and show the banner in its final state.
 
 ```html
 <h1>
-  <span class="ln"><span class="li" style="--l:0">Thanks for downloading</span></span>
-  <span class="ln"><span class="li" style="--l:1">Visual Studio Code!</span></span>
+  <span class="ln">Thanks for downloading</span>
+  <span class="ln">Visual Studio Code!</span>
 </h1>
 ```
 
 ```scss
 .thankyou-confirmation {
-  h1 .ln { display: block; overflow: hidden; padding-bottom: 12px; margin-bottom: -12px; }
-  h1 .li {
-    display: inline-block;
-    vertical-align: top;
-    animation: thankyou-rise 1.1s cubic-bezier(.19, 1, .22, 1) both;
-    animation-delay: calc(150ms + var(--l) * 120ms);
-  }
-  p { animation: thankyou-fade-up .8s cubic-bezier(.2, .7, .1, 1) .77s both; }
+  h1 .ln { display: block; }
+  h1, p { animation: thankyou-fade-up .7s cubic-bezier(.2, .7, .1, 1) both; }
+  h1 { animation-delay: .1s; }
+  p { animation-delay: .35s; }
 
   @media (prefers-reduced-motion: reduce) {
-    h1 .li, p { animation: none; }
+    h1, p { animation: none; }
   }
 }
-@keyframes thankyou-rise { from { transform: translateY(110%); } }
 @keyframes thankyou-fade-up { from { opacity: 0; transform: translateY(8px); } }
 ```
 
@@ -207,7 +199,7 @@ The page has no `<h1>` today: its headings start at "What's new" (`<h2>`), and t
 
 ## Motion: light grid
 
-Behind the text, the banner holds a dense grid of small codicons. When the banner appears, a band of light starts at the center and spreads out to the edges as a diamond with 45° sides. Cells light up as the front passes, stay lit for a moment, then fade back. Afterwards the grid rests as faint dots, and the animation stops. It plays once and doesn't loop. The headline's line reveal plays at the same time, in front of it.
+Behind the text, the banner holds a dense grid of small codicons. When the banner appears, a band of light starts at the center and spreads out to the edges as a diamond with 45° sides. Cells light up as the front passes, stay lit for a moment, then fade back. Afterwards the grid rests as faint dots, and the animation stops. It plays once and doesn't loop. The text's fade-up plays at the same time, in front of it.
 
 The reference implementation is the script in `index.html`: `LIGHT_GRID` (the tuning), `GRID_CODICONS` (the icons), `launchLightGrid()` and `playLightGrid()`. Port it as it is; the values below describe what it does.
 
@@ -240,7 +232,7 @@ The reference implementation is the script in `index.html`: `LIGHT_GRID` (the tu
 ### Behavior
 
 - **Start:** call `playLightGrid()` right after `download.js` shows the banner. The grid measures the banner when it starts, so it can't start while the banner is hidden.
-- **Reduced motion:** with `prefers-reduced-motion: reduce`, don't draw the grid at all. The banner shows in its final state, as for the line reveal.
+- **Reduced motion:** with `prefers-reduced-motion: reduce`, don't draw the grid at all. The banner shows in its final state, as for the text fade-up.
 - **Dismiss:** the grid stops drawing as soon as the banner is hidden, whether by the `hidden` attribute or `display: none` (such as jQuery's `.hide()`).
 - **Cost:** about 1,000 cells per frame for about 8 seconds, from icons drawn ahead of time into an atlas, then nothing.
 
@@ -281,14 +273,45 @@ The button follows the site's existing `.dismiss-btn` pattern, the one on the up
 ```
 
 **Behavior:**
-- Clicking the button hides the banner straight away, with no closing animation. That matches the site's updates banner.
-- The content below moves up into the space.
+- Clicking the button animates the banner out, then hides it:
+
+  | Step | Animation | Duration | Delay | Easing |
+  |---|---|---|---|---|
+  | 1. Headline and body | Fade from 1 to 0 opacity while moving up 8px | 200ms | 0 | `ease-in` |
+  | 2. Banner | Height, min height, top margin, top and bottom padding and opacity all go to 0, so the content below moves up into the space | 360ms | 200ms | `cubic-bezier(.4, 0, .2, 1)` |
+  | 3. Banner | Hidden (`display: none`) | | 560ms | |
+
+  The light grid keeps playing while the banner folds, and stops once it's hidden.
+- With reduced motion turned on, the button hides the banner straight away, with no animation, as the site's updates banner does.
+- Clicking again while the banner is leaving does nothing.
 - After the banner hides, move keyboard focus to the "What's new" heading (`#whats-new-heading`, given `tabindex="-1"`), so keyboard and screen reader users aren't left on a removed element.
+- Reference code: the `.leaving` styles and `dismissAnimated()` in `index.html`:
+
+  ```scss
+  .thankyou-confirmation.leaving {
+    h1, p { animation: thankyou-fade-out .2s ease-in forwards; }
+  }
+  @keyframes thankyou-fade-out { to { opacity: 0; transform: translateY(-8px); } }
+  ```
+
+  ```js
+  async function dismissAnimated(el) {
+    if (el.classList.contains('leaving')) return;
+    el.classList.add('leaving');
+    await new Promise(r => setTimeout(r, 200));
+    const cs = getComputedStyle(el);
+    const from = { height: `${el.offsetHeight}px`, minHeight: cs.minHeight, marginTop: cs.marginTop,
+      paddingTop: cs.paddingTop, paddingBottom: cs.paddingBottom, opacity: 1 };
+    const to = { height: '0px', minHeight: '0px', marginTop: '0px', paddingTop: '0px', paddingBottom: '0px', opacity: 0 };
+    await el.animate([from, to], { duration: 360, easing: 'cubic-bezier(.4, 0, .2, 1)' }).finished;
+    el.hidden = true;   // or $(el).hide()
+  }
+  ```
 - The dismissal isn't saved. The banner shows again on the next visit to `/thank-you`. The site's updates banner does save its dismissal in `localStorage`, but that would be wrong here, because each visit follows a new download.
 
 ## Acceptance criteria
 
-- [ ] After a download redirect, the banner appears where the old confirmation bar was, and the headline plays the line reveal once.
+- [ ] After a download redirect, the banner appears where the old confirmation bar was, and the headline and body fade up once.
 - [ ] As the banner appears, the light grid spreads once from the center as a diamond, settles to faint dots, and stops drawing after about 8 seconds.
 - [ ] The text, link and dismiss button stay in front of the grid, and the link and button can be clicked while it plays.
 - [ ] "here" links to the same direct-download URL that `#direct-link` gets today, for every OS and build.
@@ -296,6 +319,7 @@ The button follows the site's existing `.dismiss-btn` pattern, the one on the up
 - [ ] In the dark theme, the banner uses the dark colors above, and its edge fades into the page background.
 - [ ] At 640px wide or less, the headline is 34/40 and nothing is clipped or overlapping.
 - [ ] With reduced motion turned on, the banner appears in its final state without animation, and without the light grid.
+- [ ] Dismissing fades the text out, then folds the banner closed as the page moves up, in about 0.56s. With reduced motion, the banner hides straight away.
 - [ ] The dismiss button can be reached with Tab, shows the focus outline, and works with Enter and Space. Screen readers announce it as "Dismiss". After dismissing, focus moves to "What's new".
 - [ ] The banner headline is the page's only `<h1>`.
 - [ ] The header **Download** button and the rest of the page are unchanged.

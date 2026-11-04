@@ -3,7 +3,7 @@
 Prototype of the "Thanks for downloading Visual Studio Code!" banner for the VS Code download thank-you page.
 
 - Light grid: a grid of small codicons behind the text; a band of light spreads once from the center, then the grid rests
-- Headline animation: lines reveal on load; the link comes in last
+- Text animation: the headline fades up on load, then the link; dismissing fades the text out and folds the banner closed
 - Codicon close button in the top-right corner, following the dismiss button pattern on code.visualstudio.com
 - Light and dark themes; the page follows your OS setting
 
