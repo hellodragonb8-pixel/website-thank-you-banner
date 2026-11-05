@@ -9,7 +9,7 @@ People who land on `/thank-you` often start a second download, because the redir
 **In scope:** the confirmation banner only.
 **Out of scope:** the header **Download** button, the "What's new" and "Get started" sections, and the download logic itself.
 
-Reference prototype: [hellodragonb8-pixel/website-thank-you-banner](https://github.com/hellodragonb8-pixel/website-thank-you-banner) (`index.html`). 
+Reference prototype: [hellodragonb8-pixel/website-thank-you-banner](https://github.com/hellodragonb8-pixel/website-thank-you-banner) (`index.html`). The controls at the bottom of the prototype (motion, replay, theme) are only for previewing it; don't build them. On the site, follow `prefers-reduced-motion` and the site's theme.
 
 ## Where it goes
 

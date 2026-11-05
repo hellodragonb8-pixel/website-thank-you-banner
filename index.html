@@ -13,6 +13,11 @@
   }
   applyTheme();
   addEventListener('hashchange', applyTheme);
+  // Prototype only: motion follows the OS reduced motion setting; ?motion=on or ?motion=reduced forces one (the motion
+  // toggle at the bottom of the page does this). On the site, use the prefers-reduced-motion media query instead.
+  const motionParam = new URLSearchParams(location.search).get('motion');
+  document.documentElement.dataset.motion = motionParam === 'on' || motionParam === 'reduced' ? motionParam
+    : matchMedia('(prefers-reduced-motion: reduce)').matches ? 'reduced' : 'on';
 </script>
 <style>
   :root {
@@ -173,9 +178,9 @@
   /* Dismiss: the text fades up and out, then the banner folds away and the page moves up (see the script) */
   .thanks.leaving h1, .thanks.leaving p { animation: fade-out .2s ease-in forwards; }
   @keyframes fade-out { to { opacity: 0; transform: translateY(-8px); } }
-  @media (prefers-reduced-motion: reduce) {
-    .thanks h1, .thanks p { animation: none; }
-  }
+  /* Reduced motion: no fade-up. On the site this is @media (prefers-reduced-motion: reduce); here data-motion stands
+     in for it, so the motion toggle can show both. */
+  :root[data-motion="reduced"] .thanks h1, :root[data-motion="reduced"] .thanks p { animation: none; }
 
   /* Light grid: a canvas behind the text, clipped to the banner, that fades in as it starts (see the script at the
      bottom). The text and dismiss button sit above it. */
@@ -215,6 +220,31 @@
   }
   footer.legal a { color: var(--footer-link); font-weight: 600; text-decoration: none; }
 
+  /* ---------- Preview controls (prototype only, not part of the build; H hides them) ----------
+     Motion on the left, replay in the middle, theme on the right */
+  .proto-bar {
+    position: fixed; left: 24px; right: 24px; bottom: 52px; z-index: 30;
+    display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); align-items: center; pointer-events: none;
+  }
+  .proto-bar[hidden] { display: none; }
+  .proto-ctl {
+    display: flex; gap: 4px; padding: 4px; border-radius: 10px; pointer-events: auto;
+    background: rgba(30, 33, 38, .92); box-shadow: 0 6px 24px rgba(0, 0, 0, .25);
+    font: 500 13px/1 var(--font);
+  }
+  .proto-motion { justify-self: start; }
+  .proto-theme { justify-self: end; }
+  .proto-ctl button {
+    display: flex; align-items: center; padding: 8px 14px; border: 0; border-radius: 7px;
+    background: transparent; color: #c9d1d9; font: inherit; cursor: pointer;
+  }
+  .proto-ctl button:hover { background: rgba(255, 255, 255, .08); color: #fff; }
+  .proto-ctl button[aria-pressed="true"] { background: #0078d4; color: #fff; }
+  .proto-ctl button:focus-visible { outline: 2px solid #4daafc; outline-offset: 2px; }
+  .proto-ctl svg { width: 16px; height: 16px; flex: none; }
+  .proto-ctl svg + span { margin-left: 6px; }
+  .proto-theme button { padding: 8px 10px; }
+
   @media (max-width: 1000px) {
     nav.primary { display: none; }
     .wn-card { grid-template-columns: 1fr; }
@@ -228,6 +258,10 @@
        button. The site's real header isn't part of this change. */
     .brand { white-space: nowrap; }
     .dl-btn { display: none; }
+    /* Shorter preview controls so all three fit */
+    .proto-bar { left: 12px; right: 12px; }
+    .proto-long { display: none; }
+    .proto-ctl button { padding: 8px 10px; }
   }
 </style>
 </head>
@@ -303,8 +337,31 @@
   <div class="container">By using VS Code, you agree to its <a href="#">license</a> and <a href="#">privacy statement</a>.</div>
 </footer>
 
+<!-- Preview controls (prototype only). Codicons has no sun, moon or replay icon, so these are drawn to match:
+     16px grid, 1px strokes -->
+<div class="proto-bar" id="protoBar">
+  <nav class="proto-ctl proto-motion" aria-label="Motion">
+    <button type="button" data-motion-choice="on" title="Motion: the banner animates in">Motion</button>
+    <button type="button" data-motion-choice="reduced" title="Reduced motion: the banner as people with reduced motion see it">Reduced<span class="proto-long">&nbsp;motion</span></button>
+  </nav>
+  <div class="proto-ctl proto-replay">
+    <button type="button" id="replay" title="Replay the banner" aria-label="Replay">
+      <svg viewBox="0 0 16 16" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" d="M13 8a5 5 0 1 1-1.46-3.54M8.9 4.46h2.64V1.82"/></svg><span class="proto-long">Replay</span>
+    </button>
+  </div>
+  <nav class="proto-ctl proto-theme" aria-label="Theme">
+    <button type="button" data-theme-choice="light" title="Light theme" aria-label="Light theme">
+      <svg viewBox="0 0 16 16" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-linecap="round"><circle cx="8" cy="8" r="3"/><path d="M8 1.5V3M8 13v1.5M1.5 8H3M13 8h1.5M3.4 3.4l1.06 1.06M11.54 11.54l1.06 1.06M3.4 12.6l1.06-1.06M11.54 4.46l1.06-1.06"/></g></svg>
+    </button>
+    <button type="button" data-theme-choice="dark" title="Dark theme" aria-label="Dark theme">
+      <svg viewBox="0 0 16 16" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-linejoin="round" d="M13.5 9.6A5.5 5.5 0 0 1 6.4 2.5a5.5 5.5 0 1 0 7.1 7.1Z"/></svg>
+    </button>
+  </nav>
+</div>
+
 <script>
-  const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  // On the site: matchMedia('(prefers-reduced-motion: reduce)').matches. Here the motion toggle can override it.
+  const reducedMotion = document.documentElement.dataset.motion === 'reduced';
 
   // Dismiss buttons hide their region right away, as on code.visualstudio.com. The thank-you banner animates out
   // first, unless reduced motion is on.
@@ -553,6 +610,39 @@
   // The banner shows on load here; on the site, start the grid when download.js shows the banner, because the
   // grid measures the banner when it starts
   playLightGrid(document.getElementById('thanks'));
+
+  // Preview controls (prototype only). Each one reloads the page, so the banner plays from the start exactly as on
+  // arrival: the motion toggle sets ?motion=, the theme toggle sets #light or #dark (the grid reads its colors when
+  // it starts), and replay just reloads. H hides the controls for screenshots; they stay hidden until H is pressed again.
+  const protoBar = document.getElementById('protoBar');
+  for (const b of protoBar.querySelectorAll('[data-motion-choice]')) {
+    b.setAttribute('aria-pressed', b.dataset.motionChoice === document.documentElement.dataset.motion);
+    b.addEventListener('click', () => {
+      if (b.dataset.motionChoice === document.documentElement.dataset.motion) return;
+      const params = new URLSearchParams(location.search);
+      params.set('motion', b.dataset.motionChoice);
+      location.search = params;
+    });
+  }
+  for (const b of protoBar.querySelectorAll('[data-theme-choice]')) {
+    b.setAttribute('aria-pressed', b.dataset.themeChoice === document.documentElement.dataset.theme);
+    b.addEventListener('click', () => {
+      if (b.dataset.themeChoice === document.documentElement.dataset.theme) return;
+      location.hash = b.dataset.themeChoice;
+      location.reload();
+    });
+  }
+  document.getElementById('replay').addEventListener('click', () => location.reload());
+
+  const hideProto = on => {
+    protoBar.hidden = on;
+    sessionStorage.setItem('proto-hidden', on ? '1' : '');
+  };
+  hideProto(sessionStorage.getItem('proto-hidden') === '1');
+  document.addEventListener('keydown', e => {
+    if (e.ctrlKey || e.metaKey || e.altKey || e.target.closest('input, textarea')) return;
+    if (e.key.toLowerCase() === 'h') hideProto(!protoBar.hidden);
+  });
 </script>
 </body>
 </html>
